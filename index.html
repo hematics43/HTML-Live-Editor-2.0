@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>📝 HTML Editor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/material.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/eclipse.min.css">
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: var(--toolbar-bg);
+      border-bottom: 2px solid var(--border-color);
+    }
+    .toolbar button, .toolbar input[type="file"], .toolbar label {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .toolbar input[type="checkbox"] {
+      margin-left: 5px;
+    }
+    .editor-preview-wrapper {
+      display: flex;
+      height: calc(100vh - 140px);
+    }
+    .editor-container, #preview-container {
+      flex: 1;
+      height: 100%;
+      resize: horizontal;
+      overflow: auto;
+    }
+    .CodeMirror {
+      height: 100%;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    :root {
+      --toolbar-bg: #282c34;
+      --border-color: #444;
+      --btn-bg: #3b82f6;
+      --btn-text: white;
+      --bg: #1e1e2f;
+      --text: #eee;
+      --tab-inactive: #374151;
+      --tab-active: #60a5fa;
+    }
+    [data-theme="light"] {
+      --toolbar-bg: #f0f0f0;
+      --border-color: #ccc;
+      --btn-bg: #4f46e5;
+      --btn-text: white;
+      --bg: #ffffff;
+      --text: #000;
+      --tab-inactive: #ddd;
+      --tab-active: #4f46e5;
+    }
+
+    #tabs {
+      display: flex;
+      background: var(--toolbar-bg);
+      border-bottom: 1px solid var(--border-color);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 8px 14px;
+      background: var(--tab-inactive);
+      color: white;
+      border-right: 1px solid var(--border-color);
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+    }
+    .tab.active {
+      background: var(--tab-active);
+      font-weight: bold;
+    }
+    .tab .close-btn {
+      position: absolute;
+      top: 3px;
+      right: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button onclick="pasteContent()">📋 Paste</button>
+    <input type="file" onchange="importHTML(event)">
+    <button onclick="exportHTML()">💾 Export</button>
+    <button onclick="clearEditor()">🧹 Clear</button>
+    <button onclick="toggleFullscreen()">🖥 Fullscreen</button>
+    <button onclick="addTab()">➕ New Tab</button>
+    <label>🌙 Dark Mode
+      <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+    </label>
+    <label>💾 Auto-Save
+      <input type="checkbox" id="autosaveToggle" onchange="toggleAutoSave()">
+    </label>
+  </div>
+
+  <div id="tabs"></div>
+
+  <div class="editor-preview-wrapper">
+    <div class="editor-container">
+      <textarea id="code"></textarea>
+    </div>
+    <div id="preview-container">
+      <iframe id="preview"></iframe>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script>
+    let autoSave = localStorage.getItem('autoSave') === 'true';
+    document.getElementById('autosaveToggle').checked = autoSave;
+
+    const editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+      mode: 'htmlmixed',
+      lineNumbers: true,
+      theme: 'material',
+      lineWrapping: true
+    });
+
+    let tabs = JSON.parse(localStorage.getItem('tabs') || '[""]');
+    let currentTab = parseInt(localStorage.getItem('currentTab')) || 0;
+
+    function saveTabs() {
+      localStorage.setItem('tabs', JSON.stringify(tabs));
+      localStorage.setItem('currentTab', currentTab);
+    }
+
+    function renderTabs() {
+      const tabContainer = document.getElementById('tabs');
+      tabContainer.innerHTML = '';
+      tabs.forEach((_, i) => {
+        const tab = document.createElement('div');
+        tab.className = 'tab' + (i === currentTab ? ' active' : '');
+        tab.textContent = 'Tab ' + (i + 1);
+
+        const closeBtn = document.createElement('span');
+        closeBtn.className = 'close-btn';
+        closeBtn.textContent = '×';
+        closeBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteTab(i);
+        };
+
+        tab.appendChild(closeBtn);
+        tab.onclick = () => switchTab(i);
+        tabContainer.appendChild(tab);
+      });
+    }
+
+    function switchTab(index) {
+      tabs[currentTab] = editor.getValue();
+      currentTab = index;
+      editor.setValue(tabs[currentTab]);
+      updatePreview();
+      renderTabs();
+      saveTabs();
+    }
+
+    function addTab(content = '') {
+      tabs.push(content);
+      switchTab(tabs.length - 1);
+    }
+
+    function deleteTab(index) {
+      tabs.splice(index, 1);
+      if (currentTab >= index) currentTab = Math.max(0, currentTab - 1);
+      if (tabs.length === 0) tabs.push('');
+      switchTab(currentTab);
+      renderTabs();
+      saveTabs();
+    }
+
+    editor.on('change', () => {
+      tabs[currentTab] = editor.getValue();
+      updatePreview();
+      if (autoSave) saveTabs();
+    });
+
+    function saveContent() {
+      tabs[currentTab] = editor.getValue();
+      saveTabs();
+    }
+
+    function toggleAutoSave() {
+      autoSave = document.getElementById('autosaveToggle').checked;
+      localStorage.setItem('autoSave', autoSave);
+      if (autoSave) saveContent();
+    }
+
+    function toggleTheme() {
+      const isLight = document.getElementById('themeToggle').checked;
+      document.body.setAttribute('data-theme', isLight ? 'light' : '');
+      editor.setOption('theme', isLight ? 'eclipse' : 'material');
+    }
+
+    function updatePreview() {
+      document.getElementById('preview').srcdoc = editor.getValue();
+    }
+
+    async function pasteContent() {
+      try {
+        const text = await navigator.clipboard.readText();
+        editor.setValue(text);
+      } catch (e) {
+        alert('Clipboard access error');
+      }
+    }
+
+    function importHTML(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => editor.setValue(e.target.result);
+      reader.readAsText(file);
+    }
+
+    function exportHTML() {
+      const blob = new Blob([editor.getValue()], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `document.html`;
+      a.click();
+    }
+
+    function clearEditor() {
+      editor.setValue('');
+    }
+
+    function toggleFullscreen() {
+      const iframe = document.getElementById('preview');
+      if (!document.fullscreenElement) iframe.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    // Initial setup
+    renderTabs();
+    editor.setValue(tabs[currentTab]);
+    updatePreview();
+  </script>
+</body>
+</html>
