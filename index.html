@@ -2,66 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>📝 HTML Editor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/material.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/eclipse.min.css">
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    .header {
-      text-align: center;
-      font-size: 1.8rem;
-      font-weight: bold;
-      padding: 12px;
-      background: var(--toolbar-bg);
-      color: var(--btn-text);
-      border-bottom: 2px solid var(--border-color);
-      letter-spacing: 1px;
-    }
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-      background: var(--toolbar-bg);
-      border-bottom: 2px solid var(--border-color);
-    }
-    .toolbar button, .toolbar input[type="file"], .toolbar label {
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      padding: 8px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .toolbar input[type="checkbox"] {
-      margin-left: 5px;
-    }
-    .editor-preview-wrapper {
-      display: flex;
-      height: calc(100vh - 180px);
-    }
-    .editor-container, #preview-container {
-      flex: 1;
-      height: 100%;
-      resize: horizontal;
-      overflow: auto;
-    }
-    .CodeMirror {
-      height: 100%;
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
     :root {
       --toolbar-bg: #282c34;
       --border-color: #444;
@@ -72,6 +18,7 @@
       --tab-inactive: #374151;
       --tab-active: #60a5fa;
     }
+
     [data-theme="light"] {
       --toolbar-bg: #f0f0f0;
       --border-color: #ccc;
@@ -83,32 +30,135 @@
       --tab-active: #4f46e5;
     }
 
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .header {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      padding: 10px;
+      background: var(--toolbar-bg);
+      color: var(--btn-text);
+      border-bottom: 2px solid var(--border-color);
+      letter-spacing: 0.5px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px;
+      background: var(--toolbar-bg);
+      border-bottom: 2px solid var(--border-color);
+      justify-content: center;
+    }
+
+    .toolbar button,
+    .toolbar input[type="file"],
+    .toolbar label {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .toolbar input[type="checkbox"] {
+      margin-left: 5px;
+    }
+
     #tabs {
       display: flex;
+      overflow-x: auto;
       background: var(--toolbar-bg);
       border-bottom: 1px solid var(--border-color);
-      overflow-x: auto;
     }
+
     .tab {
-      padding: 8px 14px;
+      flex-shrink: 0;
+      padding: 8px 12px;
       background: var(--tab-inactive);
       color: white;
       border-right: 1px solid var(--border-color);
       cursor: pointer;
       position: relative;
-      user-select: none;
+      white-space: nowrap;
     }
+
     .tab.active {
       background: var(--tab-active);
       font-weight: bold;
     }
+
     .tab .close-btn {
       position: absolute;
-      top: 3px;
+      top: 2px;
       right: 6px;
       font-weight: bold;
       cursor: pointer;
       color: red;
+    }
+
+    .editor-preview-wrapper {
+      display: flex;
+      flex-direction: row;
+      height: calc(100vh - 200px);
+    }
+
+    .editor-container,
+    #preview-container {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .editor-container {
+      border-right: 2px solid var(--border-color);
+    }
+
+    .CodeMirror {
+      height: 100%;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    @media (max-width: 768px) {
+      .editor-preview-wrapper {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .editor-container,
+      #preview-container {
+        height: 300px;
+        border-right: none;
+        border-bottom: 2px solid var(--border-color);
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+      }
+
+      .tab {
+        font-size: 0.9rem;
+        padding: 6px 10px;
+      }
+
+      .header {
+        font-size: 1.3rem;
+      }
     }
   </style>
 </head>
