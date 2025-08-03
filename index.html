@@ -14,6 +14,16 @@
       background: var(--bg);
       color: var(--text);
     }
+    .header {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      padding: 12px;
+      background: var(--toolbar-bg);
+      color: var(--btn-text);
+      border-bottom: 2px solid var(--border-color);
+      letter-spacing: 1px;
+    }
     .toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -36,7 +46,7 @@
     }
     .editor-preview-wrapper {
       display: flex;
-      height: calc(100vh - 140px);
+      height: calc(100vh - 180px);
     }
     .editor-container, #preview-container {
       flex: 1;
@@ -103,6 +113,9 @@
   </style>
 </head>
 <body>
+
+  <div class="header">📝 HTML Live Editor with Tabs</div>
+
   <div class="toolbar">
     <button onclick="pasteContent()">📋 Paste</button>
     <input type="file" onchange="importHTML(event)">
