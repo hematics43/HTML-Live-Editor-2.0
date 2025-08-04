@@ -7,6 +7,23 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/material.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/eclipse.min.css">
   <style>
+    #jumpButton {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      font-size: 16px;
+    }
+
+    #jumpButton:hover {
+      background-color: #45a049;
+    }
     html, body {
       margin: 0;
       height: 100%;
@@ -275,5 +292,8 @@
     editor.setValue(tabs[currentTab]);
     updatePreview();
   </script>
+  <button id="jumpButton" onclick="window.location.href='https://hematics43.github.io/HTML-Code-Editor-1.0/'">
+     Launch HTML Live Editor 1.0
+  </button>
 </body>
 </html>
